@@ -35,7 +35,7 @@ class Bug2():
         self.rate = 1
         self.r = rospy.Rate(self.rate)
         self.linear_speed = 0.08
-	self.angular_speed = 0.5
+	self.angular_speed = 0.2
 	self.orth_angle = 0
 
 	self.right_wall_existed = False	
@@ -75,21 +75,27 @@ class Bug2():
 	print("Mline: " + str(self.mline)) 
 
 	while not rospy.is_shutdown():
-	    #self.face_pos(self.goal_pos) 
-	    self.r.sleep()
+	    while abs(degrees(self.rot - atan2(self.goal_pos.y - self.start.y, self.goal_pos.x - self.start.x))) > 5 and not rospy.is_shutdown():
+		print("rotating to face goal")
+		self.rotate_inc() 
+		self.update_odom()
+	    	self.r.sleep()
 	    while not self.obstacle_in_front(): 
 	        self.translate_inc()
 		self.r.sleep()
 		self.update_odom()
 		if self.goal_reached():
-			return True 
+		    return True 
 	    self.print_dists()
-	    print("Obstacle too close, stopping at pos {}, {}".format(self.pos.x, self.pos.y))
+	    print("Found obstacle at {}, {}".format(self.pos.x, self.pos.y))
 	    self.cmd_vel.publish(Twist()) 
 	    self.hitpt = self.pos
 	    self.hitpt_rot = self.rot 
 	    
-	    self.follow_boundary() 
+	    if not self.follow_boundary():
+		return False
+	    if self.goal_reached():
+		return True
 	    print("starting at mline again") 
 	    self.r.sleep()
     
@@ -108,16 +114,44 @@ class Bug2():
 		self.translate_inc()
 		self.translate_inc()
 		self.update_odom()
+	    self.print_slope() 
+	    if self.at_hitpt():
+		print("Found hitpoint, returning false")
+		return False
+	    elif self.goal_reached() or self.is_mline():
+		if self.euclidean_distance(self.pos, self.goal_pos) >= self.euclidean_distance(self.hitpt, self.goal_pos):
+			return False 
+		print("Found m-line")
+		return True
 	    self.r.sleep() 
+
+	
+    def at_hitpt(self):
+	return self.euclidean_distance(self.pos, self.hitpt) < .01
+
+    def obstacle_in_front(self):
+	result = math.isnan(self.objects_center) == False and self.objects_center < 0.8
+	return result
 
     def update_odom(self): 
 	(self.pos, self.rot) = self.get_odom()
 
     def face_pos(self, target_pos):
-	correct_angle = atan2(self.goal_pos.y - self.pos.y, self.goal_pos.x - self.pos.x)
-	self.rotate_amt(correct_angle - self.rot) 
+	self.update_odom()
+	print("Current angle: " + str(degrees(self.rot)))
+	correct_angle = atan2(target_pos.y - self.pos.y, target_pos.x - self.pos.x)
+	print("Correct angle to face: " + str(degrees(correct_angle)) + ", Rotating by: " + str(degrees(correct_angle - self.rot)))
+	self.rotate_amt(correct_angle - self.rot)
+	self.r.sleep()
+	self.update_odom()
+	print("Final rot: " + str(degrees(self.rot)))
 
-    #replace with previous rotate function 
+    def print_slope(self):
+	correct_angle = atan2(self.goal_pos.y - self.pos.y, self.goal_pos.x - self.pos.x)
+	slope = (self.goal_pos.y - self.pos.y) / (self.goal_pos.x - self.pos.x)
+	print("Slope to goal: " + str(slope) + ", Angle to goal: " + str(correct_angle))
+	print("M line slope: " + str(self.mline)) 
+
     def rotate_amt(self, angle):
 	self.lock = True
 	move_cmd = Twist()
@@ -157,17 +191,19 @@ class Bug2():
 	self.pos = pos
 	self.rot = rot
 	print("(x, y) = ({}, {})".format(pos.x, pos.y))
-    
+   
+    def face_angle(self, angle):
+	amt = angle - self.rot
+	self.rotate_amt(amt) 	
+	 
     def is_mline(self):
 	slope = (self.goal_pos.y - self.pos.y) / (self.goal_pos.x - self.pos.x) 
-	return abs(self.mline - slope) < self.angular_tolerance 
+	return abs(self.mline - slope) < 0.01 
     
     def rotate_inc(self): #rotate incrementally
 	move_cmd = Twist()
 	move_cmd.angular.z = self.angular_speed
 	self.cmd_vel.publish(move_cmd)
-	self.r.sleep()
-	self.cmd_vel.publish(Twist())
 
     def translate_inc(self): #translate incrementally
 	move_cmd = Twist()
@@ -179,18 +215,6 @@ class Bug2():
     def print_dists(self):
 	print("distances: {} {} {}".format(self.objects_left, self.objects_center, self.objects_right))
  
-    def obstacle_in_front(self):
-	result = math.isnan(self.objects_center) == False and self.objects_center < self.nearness_ceiling #and self.objects_center > self.nearness_floor
-	return result
-
-    def obstacle_on_right(self):
-	result = math.isnan(self.objects_right) == False and self.objects_right < self.nearness_ceiling # and self.objects_right > self.nearness_floor
-	return result
- 
-    def obstacle_on_left(self):
-	result = math.isnan(self.objects_left) == False and self.objects_left < self.nearness_ceiling #and self.objects_left > self.nearness_floor
-	return result
-
     def scan_callback(self, msg): #it's only 30 degrees below and above the center. 
 	self.objects_center = msg.ranges[len(msg.ranges)/2]
 	self.objects_left = msg.ranges[len(msg.ranges)-1]
@@ -221,34 +245,11 @@ class Bug2():
 		self.message = "turn left"
 		self.orth_angle = self.rot 
 
-    def old_scan(self, msg): 
-	bestrad = self.rot
-	minrange = msg.range_max
-	notempty = False
-	for i in range(0, len(msg.ranges)): 
-	    if msg.ranges[i] < minrange and msg.ranges[i] >= msg.range_min:
-		minrange = msg.ranges[i] 
-		bestrad = msg.angle_min + i*msg.angle_increment 
-		notempty = True
-	if notempty:	
-	    self.orth_angle = bestrad
-	elif self.objects_right > 0.5: #turn to the right
-	    self.orth_angle = self.rot - radians(2)
-	else:
-	    self.orth_angle = self.rot + radians(2)
-	#need to find orthogonal angle for a right turn around a corner. 
-	#if math.isnan(self.objects_right) and self.right_wall_existed:
-	#    self.orth_angle = bestrad - pi/2
-	#    self.right_wall_existed = False
-
-	#self.prev_objects_right = self.objects_right
-	
     def euclidean_distance(self, goal, pos):
 	return sqrt(pow((goal.x - pos.x), 2) + 
 		    pow((goal.y - pos.y), 2)) 
 	
     def shutdown(self):
-        # Always stop the robot when shutting down the node.
         rospy.loginfo("Stopping the robot...")
         self.cmd_vel.publish(Twist())
         rospy.sleep(1)
