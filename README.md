@@ -16,3 +16,8 @@ $  python hw2.py
 ```
 
 This will run the main pathfinder script
+
+### Videos:
+World 0: 
+World 1: 
+World 2: https://youtu.be/tAXdLhQON24
