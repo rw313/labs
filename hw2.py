@@ -30,12 +30,15 @@ class Bug2():
 		rospy.signal_shutdown("tf Exception") 
 	self.start = Point()
 	(self.start, self.start_rot) = self.get_odom()
+	self.start.x = 0 #delete later 
+	self.start.y = 0 #delete later 
+
 	self.pos = Point()
 	self.update_odom() 
         self.rate = 2
         self.r = rospy.Rate(self.rate)
-        self.linear_speed = 0.06
-	self.angular_speed = 0.1
+        self.linear_speed = 0.1
+	self.angular_speed = 0.12
 	self.orth_angle = 0
 
 	self.right_wall_existed = False	
@@ -202,7 +205,7 @@ class Bug2():
 	 
     def is_mline(self):
 	slope = (self.goal_pos.y - self.pos.y) / (self.goal_pos.x - self.pos.x) 
-	return abs(self.mline - slope) < 0.004 
+	return abs(self.mline - slope) < 0.007 
     
     def rotate_inc(self): #rotate incrementally
 	move_cmd = Twist()
