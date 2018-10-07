@@ -12,7 +12,8 @@ $ roslaunch turtlebot_gazebo turtlebot_world.launch world_file:=<path_to_bug_fil
 
 In another terminal, run:
 ```
-$  python hw2.py
+$ cd lab2_rww2115_jl4397
+$ python hw2.py
 ```
 
 This will run the main pathfinder script
@@ -20,5 +21,5 @@ This will run the main pathfinder script
 ### Videos:
 World 0:   
 World 1:   
-World 2: https://youtu.be/npU7BWwDPto
+World 2: https://youtu.be/npU7BWwDPto  
 World 5:   
