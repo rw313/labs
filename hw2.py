@@ -34,7 +34,7 @@ class Bug2():
 	self.update_odom() 
         self.rate = 2
         self.r = rospy.Rate(self.rate)
-        self.linear_speed = 0.08
+        self.linear_speed = 0.06
 	self.angular_speed = 0.1
 	self.orth_angle = 0
 
@@ -202,7 +202,7 @@ class Bug2():
 	 
     def is_mline(self):
 	slope = (self.goal_pos.y - self.pos.y) / (self.goal_pos.x - self.pos.x) 
-	return abs(self.mline - slope) < 0.008 
+	return abs(self.mline - slope) < 0.004 
     
     def rotate_inc(self): #rotate incrementally
 	move_cmd = Twist()
