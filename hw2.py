@@ -188,7 +188,7 @@ class Bug2():
 	return pi/2 
 
     def goal_reached(self):
-	return abs(self.pos.x - self.goal_pos.x) < self.distance_tolerance and abs(self.pos.y - self.goal_pos.y) < self.distance_tolerance
+	return self.euclidean_distance(self.goal_pos, self.pos) < 0.01 
 
     def print_pos(self):
 	(pos, rot) = self.get_odom()
