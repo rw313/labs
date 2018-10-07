@@ -61,11 +61,11 @@ shutdown: standard shutdown ros method
 
 
 ### Videos:
-World 0: https://youtu.be/zu5p4SVLhMw  
+World 0: https://youtu.be/zu5p4SVLhMw (apologies for quality, was taken while on a plane) 
 World 1: https://youtu.be/5JY0yMQ286w  
 World 2: https://youtu.be/npU7BWwDPto  
 World 3: https://youtu.be/q6B2PYBE_Oo  
-World 5:  
+World 5: https://youtu.be/OPzpDtaO_TU (stops at the back bc euclidean distance is bigger than at hitpoint)  
 World Extra: (in 2 parts bc crashing due to max step size being too fast) 
 	https://youtu.be/yLt_or3vLWo
 	https://youtu.be/kdg-QB7Vf0I
