@@ -35,7 +35,7 @@ class Bug2():
         self.rate = 2
         self.r = rospy.Rate(self.rate)
         self.linear_speed = 0.08
-	self.angular_speed = 0.2
+	self.angular_speed = 0.1
 	self.orth_angle = 0
 
 	self.right_wall_existed = False	
@@ -75,7 +75,7 @@ class Bug2():
 	print("Mline: " + str(self.mline)) 
 
 	while not rospy.is_shutdown():
-	    while abs(degrees(self.rot - atan2(self.goal_pos.y - self.start.y, self.goal_pos.x - self.start.x))) > 5 and not rospy.is_shutdown():
+	    while abs(degrees(self.rot - atan2(self.goal_pos.y - self.start.y, self.goal_pos.x - self.start.x))) > 3 and not rospy.is_shutdown():
 		#print("rotating to face goal")
 		self.rotate_inc() 
 	#	self.rotate_amt(-self.rot)
