@@ -2,7 +2,7 @@
 import rospy
 from geometry_msgs.msg import Twist, Point, Quaternion
 import tf
-from rbx1_nav.transform_utils import quat_to_angle, normalize_angle
+from transform_utils import quat_to_angle, normalize_angle
 from sensor_msgs.msg import LaserScan
 from math import pi, pow, atan2, sqrt, radians, copysign, degrees
 import os
