@@ -32,7 +32,7 @@ class Bug2():
 	(self.start, self.start_rot) = self.get_odom()
 	self.pos = Point()
 	self.update_odom() 
-        self.rate = 1
+        self.rate = 2
         self.r = rospy.Rate(self.rate)
         self.linear_speed = 0.08
 	self.angular_speed = 0.2
@@ -76,8 +76,9 @@ class Bug2():
 
 	while not rospy.is_shutdown():
 	    while abs(degrees(self.rot - atan2(self.goal_pos.y - self.start.y, self.goal_pos.x - self.start.x))) > 5 and not rospy.is_shutdown():
-		print("rotating to face goal")
+		#print("rotating to face goal")
 		self.rotate_inc() 
+	#	self.rotate_amt(-self.rot)
 		self.update_odom()
 	    	self.r.sleep()
 	    while not self.obstacle_in_front(): 
@@ -86,7 +87,7 @@ class Bug2():
 		self.update_odom()
 		if self.goal_reached():
 		    return True 
-	    self.print_dists()
+	    #self.print_dists()
 	    print("Found obstacle at {}, {}".format(self.pos.x, self.pos.y))
 	    self.cmd_vel.publish(Twist()) 
 	    self.hitpt = self.pos
@@ -96,25 +97,28 @@ class Bug2():
 		return False
 	    if self.goal_reached():
 		return True
-	    print("starting at mline again") 
+	    #print("starting at mline again") 
 	    self.r.sleep()
     
     def follow_boundary(self):
 	print("Following boundary...") 
 	self.message = ""
 	while not rospy.is_shutdown():
- 	    self.print_dists()
-	    print("Rotating by: " + str(degrees(self.orth_angle + pi/2 - self.rot)) + " | " + self.message)
+	    #print("Rotating by: " + str(degrees(self.orth_angle + pi/2 - self.rot)) + " | " + self.message)
 	    self.rotate_amt(self.orth_angle + pi/2 - self.rot)
             self.update_odom() 
 	    if self.orth_angle == self.rot - pi/2 or self.orth_angle == self.rot - pi/2 - radians(15): #if forward or slightly to the right
 		self.translate_inc()
 		self.update_odom()
-	    if degrees(self.orth_angle + pi/2 - self.rot) > 0: #if any sort of left turn 
+	    elif degrees(self.orth_angle + pi/2 - self.rot) > 0: #if any sort of left turn 
 		self.translate_inc()
 		self.translate_inc()
 		self.update_odom()
-	    self.print_slope() 
+	    #self.print_slope()
+	    else:
+		self.r.sleep()
+		continue
+ 
 	    if self.at_hitpt():
 		print("Found hitpoint, returning false")
 		return False
@@ -127,7 +131,7 @@ class Bug2():
 
 	
     def at_hitpt(self):
-	return self.euclidean_distance(self.pos, self.hitpt) < .01
+	return self.euclidean_distance(self.pos, self.hitpt) < .001
 
     def obstacle_in_front(self):
 	result = math.isnan(self.objects_center) == False and self.objects_center < 0.8
@@ -198,7 +202,7 @@ class Bug2():
 	 
     def is_mline(self):
 	slope = (self.goal_pos.y - self.pos.y) / (self.goal_pos.x - self.pos.x) 
-	return abs(self.mline - slope) < 0.005 
+	return abs(self.mline - slope) < 0.008 
     
     def rotate_inc(self): #rotate incrementally
 	move_cmd = Twist()
