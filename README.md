@@ -19,8 +19,8 @@ $ python hw2.py
 This will run the main pathfinder script
 
 ### Videos:
-World 0:   
-World 1:   
+World 0: https://youtu.be/zu5p4SVLhMw  
+World 1: https://youtu.be/5JY0yMQ286w  
 World 2: https://youtu.be/npU7BWwDPto  
-World 3:    
+World 3: https://youtu.be/q6B2PYBE_Oo  
 World 5:   
